@@ -29,7 +29,7 @@ export class Projects implements OnInit {
   isLoading = false;
   isProjectModalOpen = false;
   isAssignModalOpen = false;
-  isEditMode = false; // 👈 لمعرفة هل المودال في وضع التعديل أم الإنشاء
+  isEditMode = false;
   message = '';
   errorMessage = '';
 
