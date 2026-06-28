@@ -17,7 +17,7 @@ public class OpenApiConfig {
                 .version("1.0.0")
                 .contact(new Contact().name("Muhammed Abdelghany"))
 
-        ).addServersItem(new Server().url("http://localhost:9090"));
+        ).addServersItem(new Server().url("http://localhost:8080"));
     }
 
 }

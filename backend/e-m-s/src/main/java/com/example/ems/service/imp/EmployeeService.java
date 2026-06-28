@@ -10,6 +10,7 @@ import com.example.ems.repo.DepartmentRepo;
 import com.example.ems.repo.EmployeeProjectRepo;
 import com.example.ems.repo.EmployeeRepo;
 import com.example.ems.repo.ProjectRepo;
+import com.example.ems.service.EmployeeServiceF;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,12 +27,12 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class EmployeeService {
+public class EmployeeService implements EmployeeServiceF {
     private final EmployeeRepo employeeRepository;
     private final DepartmentRepo departmentRepository;
     private final EmployeeMapper employeeMapper;
     private final ProjectRepo projectRepo;
-    private final EmployeeProjectRepo 
+    private final EmployeeProjectRepo employeeProjectRepo;
 
     public List<Employee> getAllEmployees() {
         return employeeRepository.findAll();
@@ -77,8 +78,6 @@ public class EmployeeService {
         return employeeRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Employee not found"));
     }
-
-
     public Page<Employee> getAllEmployees(int page, int size) {
         return employeeRepository.findAll(Pagination.pageable(page, size, Sort.by("id").descending()));
     }
@@ -138,12 +137,10 @@ public class EmployeeService {
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new EntityNotFoundException("Employee not found"));
         if (employee.getEmployeeProjects() != null && !employee.getEmployeeProjects().isEmpty()) {
-            // امسح كل القيود والروابط المربوطة بالموظف ده من جدول الوسيط أولاً
-            employeeProjectRepository.deleteAll(employee.getEmployeeProjects());
+            employeeProjectRepo.deleteAll(employee.getEmployeeProjects());
         }
         employeeRepository.delete(employee);
     }
-
     private void validateEmployeeRequest(CreatEmployeeRequest employeeRequest) {
         if (employeeRepository.existsByEmail(employeeRequest.email())) {
             throw new IllegalArgumentException("Employee with email " + employeeRequest.email() + " already exists.");

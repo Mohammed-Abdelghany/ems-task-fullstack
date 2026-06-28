@@ -11,6 +11,7 @@ import com.example.ems.mapper.ProjectMapper;
 import com.example.ems.repo.DepartmentRepo;
 import com.example.ems.repo.EmployeeRepo;
 import com.example.ems.repo.ProjectRepo;
+import com.example.ems.service.ProjectServiceF;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -26,14 +27,11 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ProjectService {
+public class ProjectService implements ProjectServiceF {
     private final ProjectRepo projectRepo;
     private final ProjectMapper projectMapper;
     private final EmployeeRepo employeeRepo;
     private final DepartmentRepo departmentRepo;
-
-
-
     @Transactional(readOnly = true)
 
     public Page<ProjectDto> getAllProjects(int page, int size) {

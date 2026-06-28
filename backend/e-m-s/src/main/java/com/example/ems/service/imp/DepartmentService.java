@@ -8,6 +8,7 @@ import com.example.ems.helper.Pagination;
 import com.example.ems.mapper.DepartmentMapper;
 import com.example.ems.repo.DepartmentRepo;
 import com.example.ems.repo.EmployeeRepo;
+import com.example.ems.service.DepartmentServiceF;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,7 +22,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 
-public class DepartmentService {
+public class DepartmentService implements DepartmentServiceF {
     private final DepartmentMapper departmentMapper;
     private final DepartmentRepo departmentRepository;
     private final EmployeeRepo employeeRepo;
@@ -78,11 +79,18 @@ public class DepartmentService {
 
         @Transactional
         public void deleteDepartment(UUID id) {
+
         Department existingDepartment = departmentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Department not found"));
+
         if (!existingDepartment.getEmployees().isEmpty()) {
             throw new RuntimeException("Cannot delete department with employees");
         }
+            if (existingDepartment.getProjects() != null) {
+                existingDepartment.getProjects().forEach(project -> {
+                    project.getDepartments().remove(existingDepartment);
+                });
+            }
         departmentRepository.delete(existingDepartment);
     }
 
