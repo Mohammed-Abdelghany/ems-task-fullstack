@@ -1,0 +1,162 @@
+<div class="container mt-4">
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h4>Employees List</h4>
+      <button class="btn btn-primary" (click)="openModal()">
+        Add New Employee
+      </button>
+    </div>
+    <div class="card-body">
+
+      <div class="row mb-3 align-items-center">
+        <div class="col-md-4">
+          <label class="form-label fw-bold">Filter by Department:</label>
+          <select class="form-select" [(ngModel)]="selectedDepartmentFilter" (change)="onFilterChange()">
+            <option value="">All Departments</option> @for (dept of departmentsList; track dept.id) {
+            <option [value]="dept.id">{{ dept.name }}</option>
+          }
+          </select>
+        </div>
+      </div>
+      @if (isLoading) {
+        <div class="d-flex justify-content-center align-items-center my-5 py-5">
+          <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <h5 class="ms-3 mb-0 text-secondary">Fetching data, please wait...</h5>
+        </div>
+      }@else{
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+          <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Hire Date</th>
+            <th>Salary</th>
+            <th>Department</th> <th>Actions</th>
+          </tr>
+          </thead>
+          <tbody>
+            @for (emp of employeesList; track emp.id) {
+              <tr>
+                <td>{{ emp.name }}</td>
+                <td>{{ emp.email }}</td>
+                <td>{{ emp.phone }}</td>
+                <td>{{ emp.hireDate }}</td>
+                <td>{{ emp.salary | currency }}</td>
+                <td>
+                  <span class="badge bg-info text-dark">
+                    {{ emp.departmentName ?? 'No Department' }}
+                  </span>
+                </td>
+                <td>
+                  <button class="btn btn-warning btn-sm me-2" (click)="editEmployee(emp)">
+                    Update
+                  </button>
+                  <button class="btn btn-danger btn-sm" (click)="deleteEmployee(emp)">
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7" class="text-center">No employees found.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+      </div>
+    </div>
+      }
+
+      <div class="d-flex justify-content-between align-items-center mt-3">
+        <div>
+          Page <span class="badge bg-secondary">{{ currentPage }}</span> of <b>{{ totalPages }}</b>
+        </div>
+        <nav>
+          <ul class="pagination mb-0">
+            <li class="page-item" [class.disabled]="currentPage === 1 || isLoading">
+              <button class="page-link" (click)="changePage(currentPage - 1)">Previous</button>
+            </li>
+            @for (page of pageNumbers; track page) {
+              <li class="page-item" [class.active]="page === currentPage">
+                <button class="page-link" (click)="changePage(page)" [disabled]="isLoading">{{ page }}</button>
+              </li>
+            }
+            <li class="page-item" [class.disabled]="currentPage === totalPages || isLoading">
+              <button class="page-link" (click)="changePage(currentPage + 1)">Next</button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+@if (isModalOpen) {
+  <div class="modal fade show d-block" style="background: rgba(0,0,0,0.5);" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ isEditMode ? 'Update Employee' : 'Add Employee' }}</h5>
+          <button type="button" class="btn-close" (click)="closeModal()"></button>
+        </div>
+        <div class="modal-body">
+
+          @if (message) { <div class="alert alert-success">{{ message }}</div> }
+          @if (errorMessage) { <div class="alert alert-danger">{{ errorMessage }}</div> }
+
+          <form (ngSubmit)="saveEmployee()" novalidate>
+            <div class="mb-3">
+              <label class="form-label">Full Name</label>
+              <input type="text" class="form-control" name="name" [(ngModel)]="employee.name" [disabled]="isLoading">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-control" name="email" [(ngModel)]="employee.email" [disabled]="isLoading">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Phone</label>
+              <input type="text" class="form-control" name="phone" [(ngModel)]="employee.phone" [disabled]="isLoading">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Hire Date</label>
+              <input type="date" class="form-control" name="hireDate" [(ngModel)]="employee.hireDate" [disabled]="isLoading">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Salary</label>
+              <input type="number" class="form-control" name="salary" [(ngModel)]="employee.salary" [disabled]="isLoading">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Department</label>
+              <select class="form-select" name="departmentId" [(ngModel)]="employee.departmentId" [disabled]="isLoading">
+                <option value="">-- Select Department --</option>
+                @for (dept of departmentsList; track dept.id) {
+                  <option [value]="dept.id">{{ dept.name }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="modal-footer px-0 pb-0">
+              <button type="button" class="btn btn-secondary" (click)="closeModal()">Close</button>
+              <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+                {{ isLoading ? 'Saving...' : 'Save' }}
+              </button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+}

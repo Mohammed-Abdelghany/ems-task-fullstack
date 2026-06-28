@@ -1,0 +1,223 @@
+<div class="container mt-4">
+  <div class="card shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+      <h5 class="mb-0 text-primary fw-bold">Projects Management</h5>
+      <button class="btn btn-primary btn-sm" (click)="openProjectModal()" [disabled]="isLoading">
+        + Add New Project
+      </button>
+    </div>
+
+    <div class="card-body">
+      @if (isLoading && projectsList.length === 0) {
+        <div class="text-center my-5 py-5">
+          <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+          <p class="mt-2 text-muted">Loading projects, please wait...</p>
+        </div>
+      } @else {
+        <div class="table-responsive">
+          <table class="table table-hover table-bordered align-middle">
+            <thead class="table-light">
+            <tr>
+              <th>Project Name</th>
+              <th>Description</th>
+              <th>Timeline</th>
+              <th>Department</th>
+              <th>Team Members</th>
+              <th class="text-center">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+              @for (proj of projectsList; track proj.id) {
+                <tr>
+                  <td><mark class="fw-bold bg-transparent text-dark">{{ proj.name }}</mark></td>
+                  <td><small class="text-muted">{{ proj.description }}</small></td>
+                  <td>
+                    <div class="small"><b>Start:</b> {{ proj.startDate }}</div>
+                    <div class="small"><b>End:</b> {{ proj.endDate }}</div>
+                  </td>
+
+                  <td>
+                    @for (deptName of getProjectDepartments(proj.departmentIds); track deptName) {
+                      <span class="badge bg-secondary px-2 py-1 me-1 mb-1">
+                        {{ deptName }}
+                      </span>
+                    } @empty {
+                      <span class="text-muted small italic">No Departments</span>
+                    }
+                  </td>
+
+                  <td>
+                    @for (empName of getProjectEmployees(proj.employees); track empName) {
+                      <div class="mb-1">
+                        <span class="badge bg-light text-dark border small" style="font-size: 0.75rem;">
+                          👤 {{ empName }}
+                        </span>
+                      </div>
+                    } @empty {
+                      <span class="text-muted small italic">No members assigned.</span>
+                    }
+                  </td>
+
+                  <td class="text-center">
+                    <div class="d-flex justify-content-center gap-1">
+                      <button class="btn btn-outline-success btn-sm fw-bold" (click)="openAssignModal(proj.id!)" [disabled]="isLoading" title="Assign Employee">
+                        + Assign
+                      </button>
+                      <button class="btn btn-outline-warning btn-sm" (click)="openEditModal(proj)" [disabled]="isLoading" title="Edit Project">
+                        ✏️ Edit
+                      </button>
+                      <button class="btn btn-outline-danger btn-sm" (click)="deleteProject(proj.id!)" [disabled]="isLoading" title="Delete Project">
+                        🗑️ Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="6" class="text-center text-muted py-4">No projects found.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-3">
+          <div class="small text-muted">
+            Page <b>{{ currentPage }}</b> of <b>{{ totalPages }}</b>
+          </div>
+          <nav>
+            <ul class="pagination pagination-sm mb-0">
+              <li class="page-item" [class.disabled]="currentPage === 1 || isLoading">
+                <button class="page-link" (click)="changePage(currentPage - 1)">Previous</button>
+              </li>
+              @for (page of pageNumbers; track page) {
+                <li class="page-item" [class.active]="page === currentPage">
+                  <button class="page-link" (click)="changePage(page)" [disabled]="isLoading">{{ page }}</button>
+                </li>
+              }
+              <li class="page-item" [class.disabled]="currentPage === totalPages || isLoading">
+                <button class="page-link" (click)="changePage(currentPage + 1)">Next</button>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+@if (isProjectModalOpen) {
+  <div class="modal fade show d-block" style="background: rgba(0,0,0,0.5);" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content border-0 shadow">
+
+        <div class="modal-header" [ngClass]="isEditMode ? 'bg-warning text-dark' : 'bg-primary text-white'">
+          <h5 class="modal-title fw-bold">{{ isEditMode ? 'Update Project' : 'Create New Project' }}</h5>
+          <button type="button" class="btn-close" [class.btn-close-white]="!isEditMode" (click)="isProjectModalOpen = false"></button>
+        </div>
+
+        <div class="modal-body">
+          @if (errorMessage) { <div class="alert alert-danger py-2 small">{{ errorMessage }}</div> }
+
+          <form (ngSubmit)="saveProject()">
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Project Name</label>
+              <input type="text" class="form-control form-control-sm" [(ngModel)]="project.name" name="name" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Description</label>
+              <textarea class="form-control form-control-sm" rows="3" [(ngModel)]="project.description" name="description" required></textarea>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label small fw-bold">Start Date</label>
+                <input type="date" class="form-control form-control-sm" [(ngModel)]="project.startDate" name="startDate" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label small fw-bold">End Date</label>
+                <input type="date" class="form-control form-control-sm" [(ngModel)]="project.endDate" name="endDate" required>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Departments (Select Multiple)</label>
+
+              <div class="border rounded p-2" style="max-height: 150px; overflow-y: auto; background-color: #f8f9fa;">
+                @for (dept of departmentsList; track dept.id) {
+                  <div class="form-check mb-1">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      [id]="'dept-' + dept.id"
+                      [checked]="isDepartmentSelected(dept.id!)"
+                      (change)="toggleDepartmentSelection(dept.id!)"
+                    >
+                    <label class="form-check-label small" [for]="'dept-' + dept.id">
+                      {{ dept.name }}
+                    </label>
+                  </div>
+                } @empty {
+                  <span class="text-muted small italic">No departments available</span>
+                }
+              </div>
+            </div>
+            <div class="modal-footer px-0 pb-0 pt-3">
+              <button type="button" class="btn btn-secondary btn-sm" (click)="isProjectModalOpen = false" [disabled]="isLoading">Close</button>
+
+              <button type="submit" class="btn btn-sm" [ngClass]="isEditMode ? 'btn-warning text-dark fw-bold' : 'btn-primary'" [disabled]="isLoading">
+                @if (isLoading) {
+                  <span>Saving...</span>
+                } @else {
+                  <span>{{ isEditMode ? 'Save Changes' : 'Create Project' }}</span>
+                }
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+@if (isAssignModalOpen) {
+  <div class="modal fade show d-block" style="background: rgba(0,0,0,0.5);" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title fw-bold">Assign Member to Project</h5>
+          <button type="button" class="btn-close btn-close-white" (click)="isAssignModalOpen = false"></button>
+        </div>
+        <div class="modal-body">
+          @if (message) { <div class="alert alert-success py-2 small">{{ message }}</div> }
+          @if (errorMessage) { <div class="alert alert-danger py-2 small">{{ errorMessage }}</div> }
+
+          <form (ngSubmit)="submitAssignment()">
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Select Employee</label>
+              <select class="form-select form-select-sm" [(ngModel)]="newAssignment.employeeId" name="employeeId" required>
+                <option value="">-- Choose Employee --</option>
+                @for (emp of allEmployeesList; track emp.id) {
+                  <option [value]="emp.id">{{ emp.name }}</option>
+                }
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Role </label>
+              <select class="form-select form-select-sm" [(ngModel)]="newAssignment.role" name="role" required>
+                <option value="">-- Choose Project Role --</option>
+                <option value="DEVELOPER">Developer</option>
+                <option value="MANAGER">Project Manager</option>
+                <option value="ANALYST">Analyst</option>
+              </select>
+            </div>
+            <div class="modal-footer px-0 pb-0 pt-3">
+              <button type="button" class="btn btn-secondary btn-sm" (click)="isAssignModalOpen = false" [disabled]="isLoading">Close</button>
+              <button type="submit" class="btn btn-success btn-sm" [disabled]="isLoading">
+                @if (isLoading) { <span>Assigning...</span> } @else { <span>Confirm Assignment</span> }
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}
