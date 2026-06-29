@@ -59,7 +59,7 @@ CREATE DATABASE employee_management_db;
 spring.application.name=employee-management-system
 server.port=8080
 
-spring.datasource.url=jdbc:postgresql://localhost:5432/employee_management_db
+spring.datasource.url=jdbc:postgresql://localhost:5432/ems_db
 spring.datasource.username=postgress
 spring.datasource.password=1234
 spring.jpa.hibernate.ddl-auto=update
