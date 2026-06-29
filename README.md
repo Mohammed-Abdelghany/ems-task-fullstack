@@ -56,7 +56,7 @@ CREATE DATABASE employee_management_db;
 
 **2. Configure** (`backend/src/main/resources/application.properties`)
 ```properties
-spring.application.name=employee-management-system
+spring.application.name=ems
 server.port=8080
 
 spring.datasource.url=jdbc:postgresql://localhost:5432/ems_db
